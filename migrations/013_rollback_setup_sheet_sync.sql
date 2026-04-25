@@ -20,7 +20,6 @@ END $$;
 
 DROP FUNCTION IF EXISTS notify_sheet_sync();
 
--- Optional: clear the database GUC. Comment out if you want to preserve the URL config.
--- ALTER DATABASE postgres RESET app.sheet_sync_url;
+DROP TABLE IF EXISTS sheet_sync_config;
 
 COMMIT;

@@ -104,24 +104,34 @@ In a browser, paste the deployment URL. You should get:
 If you get a Google login page or an HTML error page, redeploy with **Who
 has access: Anyone**.
 
-#### 3.5. Tell Postgres where to send events
+#### 3.5. Apply the trigger migration
 
-In Supabase Dashboard → **SQL Editor**, run **once**:
+In SQL Editor, paste and run `migrations/013_setup_sheet_sync.sql`. This:
+
+- Creates `sheet_sync_config` (single-row table holding the webhook URL)
+- Creates `notify_sheet_sync()` function
+- Attaches `sync_to_sheet` triggers to every public table except those in the `excluded` array
+
+> **Why a config table instead of `ALTER DATABASE ... SET`?**
+> Supabase free tier (and the default Pro role) does not grant superuser
+> to the `postgres` role, so `ALTER DATABASE postgres SET app.foo = '...'`
+> fails with `42501: permission denied`. A config table works on every
+> Supabase tier and lets you change the URL without re-running the
+> migration or restarting the project.
+
+#### 3.6. Tell Postgres where to send events
+
+In SQL Editor, run:
 
 ```sql
-ALTER DATABASE postgres
-  SET app.sheet_sync_url = 'https://script.google.com/macros/s/<YOUR_DEPLOYMENT_ID>/exec';
+UPDATE sheet_sync_config
+SET url = 'https://script.google.com/macros/s/<YOUR_DEPLOYMENT_ID>/exec',
+    updated_at = NOW()
+WHERE id = 1;
 ```
 
-Then **restart the database**: Settings → Database → "Restart project".
-This is required for the `ALTER DATABASE ... SET` to take effect on
-existing connections.
-
-#### 3.6. Apply the trigger migration
-
-In SQL Editor, paste and run `migrations/013_setup_sheet_sync.sql`. This
-creates `notify_sheet_sync()` and attaches `sync_to_sheet` triggers to
-every public table except those in the `excluded` array.
+The trigger reads the URL from this row on every fire, so the change
+takes effect immediately on the next write — no project restart needed.
 
 #### 3.7. Test
 
@@ -150,20 +160,21 @@ Edit the `excluded` array in the migration file and re-run. By default,
 
 ### Disabling sync without dropping triggers
 
-Clear the URL setting:
+Clear the URL:
 
 ```sql
-ALTER DATABASE postgres SET app.sheet_sync_url = '';
+UPDATE sheet_sync_config SET url = NULL WHERE id = 1;
 ```
 
-The trigger function checks for an empty URL and returns early, so events
-will not be sent. Restore later by setting the URL again.
+The trigger function checks for a NULL/empty URL and returns early, so
+events will not be sent. Restore later by setting the URL again.
 
 ### Removing entirely
 
 Run `migrations/013_rollback_setup_sheet_sync.sql`. Drops every
-`sync_to_sheet` trigger and the `notify_sheet_sync` function. The
-`pg_net` extension stays enabled (other things may use it).
+`sync_to_sheet` trigger, the `notify_sheet_sync` function, and the
+`sheet_sync_config` table. The `pg_net` extension stays enabled (other
+things may use it).
 
 ### Troubleshooting
 
