@@ -25,7 +25,7 @@ import { useSortableTable } from '@/hooks/use-sortable-table'
 import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
 import { ChevronLeft, ChevronRight, Eye, MapPin, User } from 'lucide-react'
 import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
+import { cn, formatPhone } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -296,7 +296,7 @@ export default function AssignOrderPage() {
                                     <div className='text-sm text-muted-foreground'>{tech.company}</div>
                                   )}
                                   {tech.contact_number && (
-                                    <div className='text-sm text-muted-foreground'>{tech.contact_number}</div>
+                                    <div className='text-sm text-muted-foreground'>{formatPhone(tech.contact_number as string | number | null | undefined)}</div>
                                   )}
                                 </div>
                                 <User className='h-8 w-8 text-muted-foreground' />
@@ -323,7 +323,7 @@ export default function AssignOrderPage() {
                             return ({
                               id: t.technician_id,
                               label: t.technician_name,
-                              secondaryLabel: t.company || t.contact_number
+                              secondaryLabel: t.company || formatPhone(t.contact_number)
                             })
                           })}
                         selected={selectedHelpers}
@@ -439,7 +439,7 @@ export default function AssignOrderPage() {
                       {orderDetail.data.customers?.phone_number && (
                         <div className='flex items-center gap-1'>
                           <span className='text-muted-foreground'>Phone:</span>
-                          {orderDetail.data.customers.phone_number}
+                          {formatPhone(orderDetail.data.customers.phone_number)}
                         </div>
                       )}
                       {orderDetail.data.customers?.email && (

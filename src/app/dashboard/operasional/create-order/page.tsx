@@ -71,7 +71,7 @@ import {
   FileText
 } from 'lucide-react'
 import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
+import { cn, formatPhone } from '@/lib/utils'
 
 // Helper: Normalize phone number (08xxx → 628xxx)
 const normalizePhone = (phone: string): string => {
@@ -780,7 +780,7 @@ export default function CreateOrderPage() {
                             <span className="min-w-0 flex-1">
                               <span className="block truncate font-medium">{suggestion.customer_name}</span>
                               <span className="block truncate text-xs text-muted-foreground">
-                                {suggestion.phone_number}{suggestion.email ? ` • ${suggestion.email}` : ''}
+                                {formatPhone(suggestion.phone_number)}{suggestion.email ? ` • ${suggestion.email}` : ''}
                               </span>
                             </span>
                           </button>

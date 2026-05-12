@@ -35,6 +35,7 @@ import { getActiveAddons, type Addon } from '@/lib/actions/addons'
 import { createInvoice, getOrderItemsForInvoice } from '@/lib/actions/invoices'
 import { parseBankAccounts, type BankAccount } from '@/lib/bank-accounts'
 import { logger } from '@/lib/logger'
+import { formatPhone } from '@/lib/utils'
 
 const invoiceSchema = z.object({
   orderId: z.string().min(1, 'Order wajib dipilih'),
@@ -544,7 +545,7 @@ export default function CreateInvoicePage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm font-medium">Phone:</span>
-                    <span className="text-sm">{selectedOrder.customers?.phone_number}</span>
+                    <span className="text-sm">{formatPhone(selectedOrder.customers?.phone_number)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm font-medium">Service Type:</span>

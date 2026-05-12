@@ -138,7 +138,7 @@ export function exportInvoiceToPDF({
   pdf.setTextColor(71, 85, 105)
   yPos += 4
   if (invoice.customers?.phone_number) {
-    pdf.text(`Tel: ${invoice.customers.phone_number}`, margin, yPos)
+    pdf.text(`Tel: ${formatPhone(invoice.customers.phone_number)}`, margin, yPos)
     yPos += 4
   }
   if (invoice.customers?.email) {

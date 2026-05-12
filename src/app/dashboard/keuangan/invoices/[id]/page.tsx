@@ -62,6 +62,7 @@ import { exportInvoiceToPDF } from '@/lib/pdf-export'
 import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { logger } from '@/lib/logger'
+import { formatPhone } from '@/lib/utils'
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: 'bg-gray-500',
@@ -672,7 +673,7 @@ export default function InvoiceDetailPage() {
                   <Label className="text-muted-foreground">Customer</Label>
                   <p className="font-semibold">{invoice.customers?.customer_name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {invoice.customers?.phone_number}
+                    {formatPhone(invoice.customers?.phone_number)}
                   </p>
                 </div>
                 <div>

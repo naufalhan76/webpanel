@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
                   <td style="width: 50%; vertical-align: top;">
                     <p style="margin: 0 0 5px 0; color: #6b7280; font-size: 12px; text-transform: uppercase; font-weight: bold;">Tagihan Kepada</p>
                     <p style="margin: 0 0 5px 0; color: #111827; font-size: 18px; font-weight: bold;">${invoice.customers.customer_name}</p>
-                    ${invoice.customers.phone_number ? `<p style="margin: 0 0 5px 0; color: #6b7280; font-size: 14px;">${invoice.customers.phone_number}</p>` : ''}
+                    ${invoice.customers.phone_number ? `<p style="margin: 0 0 5px 0; color: #6b7280; font-size: 14px;">${formatPhone(invoice.customers.phone_number)}</p>` : ''}
                     <p style="margin: 0; color: #6b7280; font-size: 14px;">${invoice.customers.email}</p>
                   </td>
                   <td style="width: 50%; vertical-align: top; text-align: right;">

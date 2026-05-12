@@ -40,6 +40,7 @@ import { getInvoices, getInvoiceStats, type Invoice } from '@/lib/actions/invoic
 import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { logger } from '@/lib/logger'
+import { formatPhone } from '@/lib/utils'
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: 'bg-gray-500',
@@ -322,7 +323,7 @@ export default function InvoicesPage() {
                             {invoice.customers?.customer_name}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {invoice.customers?.phone_number}
+                            {formatPhone(invoice.customers?.phone_number)}
                           </div>
                         </div>
                       </TableCell>
