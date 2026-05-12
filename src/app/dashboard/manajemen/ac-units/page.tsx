@@ -377,7 +377,7 @@ export default function AcUnitsPage() {
                   ) : (
                     acUnits.map((acUnit) => (
                       <TableRow key={acUnit.ac_unit_id}>
-                        <TableCell className="font-medium">{acUnit.brand}</TableCell>
+                        <TableCell className="font-medium" data-testid="brand-cell">{acUnit.ac_brands?.name || acUnit.brand}</TableCell>
                         <TableCell>{acUnit.model_number}</TableCell>
                         <TableCell>{acUnit.serial_number}</TableCell>
                         <TableCell>
