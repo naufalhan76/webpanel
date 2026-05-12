@@ -5,6 +5,7 @@ import { Invoice, InvoiceItem, PaymentRecord } from './actions/invoices'
 import { InvoiceConfig, BankAccount } from './actions/invoice-config'
 import { parseBankAccounts } from './bank-accounts'
 import { formatPhone } from '@/lib/utils'
+import { getInvoiceStatusLabel } from '@/lib/invoice-status'
 
 export interface PDFExportOptions {
   invoice: Invoice
@@ -33,6 +34,8 @@ export function exportInvoiceToPDF({
   const totalAmount = invoice.total_amount
   const amountPaid = payments.reduce((sum, payment) => sum + payment.amount, 0)
   const balanceDue = totalAmount - amountPaid
+  const displayStatus = invoice.computed_status ?? invoice.status
+  const displayStatusLabel = getInvoiceStatusLabel(displayStatus)
 
   // Get company data from config or use defaults
   const companyName = invoiceConfig?.company_name || 'AC Service Dashboard'
@@ -189,14 +192,14 @@ export function exportInvoiceToPDF({
 
   // Status badge
   let statusColor: [number, number, number] = [71, 85, 105]
-  if (invoice.status === 'PAID') statusColor = [22, 163, 74]
-  else if (invoice.status === 'OVERDUE') statusColor = [220, 38, 38]
-  else if (invoice.status === 'SENT') statusColor = [59, 130, 246]
+  if (displayStatus === 'PAID') statusColor = [22, 163, 74]
+  else if (displayStatus === 'OVERDUE') statusColor = [220, 38, 38]
+  else if (displayStatus === 'SENT') statusColor = [59, 130, 246]
 
   pdf.setFontSize(9)
   pdf.setFont('helvetica', 'bold')
   pdf.setTextColor(...statusColor)
-  pdf.text(invoice.status, pageWidth - margin - 2, rightY, { align: 'right' })
+  pdf.text(displayStatusLabel, pageWidth - margin - 2, rightY, { align: 'right' })
 
   // ========================================
   // ITEMS TABLE

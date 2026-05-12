@@ -5,6 +5,7 @@ import { logInvoiceCommunication } from '@/lib/actions/invoice-communications'
 import { parseBankAccounts } from '@/lib/bank-accounts'
 import { logger } from '@/lib/logger'
 import { formatPhone } from '@/lib/utils'
+import { getInvoiceStatusLabel, isOverdue } from '@/lib/invoice-status'
 
 export async function POST(request: NextRequest) {
   try {
@@ -106,13 +107,8 @@ export async function POST(request: NextRequest) {
     }
 
     const bankAccounts = parseBankAccounts(config?.bank_accounts)
-    const today = new Date().toISOString().split('T')[0]
-    const displayStatus = invoice.due_date < today &&
-      invoice.status !== 'PAID' &&
-      invoice.status !== 'CANCELLED' &&
-      invoice.payment_status !== 'PAID'
-      ? 'OVERDUE'
-      : invoice.status
+    const displayStatus = isOverdue(invoice) ? 'OVERDUE' : invoice.status
+    const displayStatusLabel = getInvoiceStatusLabel(displayStatus)
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -184,10 +180,10 @@ export async function POST(request: NextRequest) {
                         <td style="padding: 3px 0; color: #6b7280; font-size: 12px;">Status:</td>
                         <td style="padding: 3px 0; text-align: right;">
                           <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; 
-                            ${invoice.status === 'PAID' ? 'background-color: #dcfce7; color: #16a34a;' : 
-                              invoice.status === 'SENT' ? 'background-color: #dbeafe; color: #2563eb;' : 
-                              invoice.status === 'OVERDUE' ? 'background-color: #fee2e2; color: #dc2626;' : 
-                              'background-color: #f3f4f6; color: #6b7280;'}">${invoice.status}</span>
+                            ${displayStatus === 'PAID' ? 'background-color: #dcfce7; color: #16a34a;' : 
+                              displayStatus === 'SENT' ? 'background-color: #dbeafe; color: #2563eb;' : 
+                              displayStatus === 'OVERDUE' ? 'background-color: #fee2e2; color: #dc2626;' : 
+                              'background-color: #f3f4f6; color: #6b7280;'}">${displayStatusLabel}</span>
                         </td>
                       </tr>
                     </table>
