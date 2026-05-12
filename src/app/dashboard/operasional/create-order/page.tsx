@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast'
 import { 
   searchCustomers,
   searchCustomerByPhone, 
+  getCustomerWithLocationsById,
   createCustomer,
   createLocation,
   createOrderWithItems,
@@ -269,7 +270,7 @@ export default function CreateOrderPage() {
     setIsSearchingCustomer(true)
 
     try {
-      const result = await searchCustomerByPhone(normalizePhone(suggestion.phone_number))
+      const result = await getCustomerWithLocationsById(suggestion.customer_id)
 
       if (result.success && result.data) {
         applyExistingCustomer(result.data)
@@ -767,6 +768,7 @@ export default function CreateOrderPage() {
                           <button
                             key={suggestion.customer_id}
                             type="button"
+                            data-testid="customer-suggestion-item"
                             onMouseDown={(event) => event.preventDefault()}
                             onClick={() => handleSelectCustomerSuggestion(suggestion)}
                             onMouseEnter={() => setHighlightedSuggestionIndex(index)}
