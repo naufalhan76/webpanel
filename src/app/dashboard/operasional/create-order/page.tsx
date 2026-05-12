@@ -998,7 +998,15 @@ export default function CreateOrderPage() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={scheduledDate} onSelect={setScheduledDate} initialFocus />
+                        <div data-testid="schedule-date-picker">
+                          <Calendar
+                            mode="single"
+                            selected={scheduledDate}
+                            onSelect={setScheduledDate}
+                            disabled={(date) => { const today = new Date(); today.setHours(0, 0, 0, 0); return date < today }}
+                            initialFocus
+                          />
+                        </div>
                       </PopoverContent>
                     </Popover>
                     {scheduledDate && (
