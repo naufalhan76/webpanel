@@ -66,6 +66,7 @@ export default function InvoicesPage() {
     total: 0,
     draft: 0,
     sent: 0,
+    partialPaid: 0,
     paid: 0,
     overdue: 0,
     totalRevenue: 0,
@@ -159,7 +160,7 @@ export default function InvoicesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.draft} draft, {stats.sent} terkirim
+              {stats.draft} draft, <span data-testid="stats-terkirim">{stats.sent + stats.paid + stats.partialPaid + stats.overdue}</span> terkirim
             </p>
           </CardContent>
         </Card>
