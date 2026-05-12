@@ -41,6 +41,7 @@ import { createInvoice, getInvoiceById, getOrderItemsForInvoice } from '@/lib/ac
 import { getInvoiceConfig } from '@/lib/actions/invoice-config'
 import { exportInvoiceToPDF } from '@/lib/pdf-export'
 import { Switch } from '@/components/ui/switch'
+import { parseBankAccounts, type BankAccount } from '@/lib/bank-accounts'
 import {
   Select,
   SelectContent,
@@ -48,7 +49,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { BankAccount } from '@/app/dashboard/konfigurasi/invoice-config/bank-accounts-section'
 import type {
   OrderFormState,
   LocationFormData,
@@ -180,10 +180,7 @@ export default function CreateOrderPage() {
           .single()
 
         if (data?.bank_accounts) {
-          const accounts = typeof data.bank_accounts === 'string'
-            ? JSON.parse(data.bank_accounts)
-            : data.bank_accounts
-          setBankAccounts(accounts || [])
+          setBankAccounts(parseBankAccounts(data.bank_accounts))
         }
 
         // Default due date: today + default_due_days
@@ -401,6 +398,15 @@ export default function CreateOrderPage() {
       })
     })
     return total
+  }
+
+  const formatPaymentAccountLabel = (account: BankAccount, index: number) => {
+    const label = account.account_label || `Payment Account ${index + 1}`
+    const bank = account.bank || 'Unknown bank'
+    const accountNumber = account.account_number || 'No. rekening belum diisi'
+    const taxText = Number.isFinite(account.tax_percentage) ? `PPN ${account.tax_percentage}%` : 'PPN 11%'
+
+    return `${label} • ${bank} - ${accountNumber} (${taxText})`
   }
 
   // Validate and show confirm modal
@@ -1125,7 +1131,7 @@ export default function CreateOrderPage() {
                           value={proformaPaymentAccountId}
                           onValueChange={setProformaPaymentAccountId}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger data-testid="payment-account-select">
                             <SelectValue placeholder="Pick payment account" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1134,16 +1140,19 @@ export default function CreateOrderPage() {
                                 No payment accounts configured
                               </div>
                             ) : (
-                              bankAccounts.map(acc => (
-                                <SelectItem key={acc.id} value={acc.id}>
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-medium">{acc.account_label}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {acc.bank} • PPN {acc.tax_percentage}%
-                                    </span>
-                                  </div>
+                              bankAccounts.map((acc, index) => {
+                                const paymentAccountLabel = formatPaymentAccountLabel(acc, index)
+
+                                return (
+                                <SelectItem
+                                  key={acc.id}
+                                  value={acc.id}
+                                  data-testid="payment-account-option"
+                                >
+                                  {paymentAccountLabel}
                                 </SelectItem>
-                              ))
+                                )
+                              })
                             )}
                           </SelectContent>
                         </Select>

@@ -3,7 +3,8 @@ import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { Invoice, InvoiceItem, PaymentRecord } from './actions/invoices'
 import { InvoiceConfig, BankAccount } from './actions/invoice-config'
-import { logger } from '@/lib/logger'
+import { parseBankAccounts } from './bank-accounts'
+import { formatPhone } from '@/lib/utils'
 
 export interface PDFExportOptions {
   invoice: Invoice
@@ -43,15 +44,7 @@ export function exportInvoiceToPDF({
   const taxPercentage = invoiceConfig?.default_tax_percentage || 11
   const termsTemplate = invoiceConfig?.terms_conditions_template || null
 
-  // Parse bank accounts from JSON string
-  let bankAccounts: BankAccount[] = []
-  if (invoiceConfig?.bank_accounts) {
-    try {
-      bankAccounts = JSON.parse(invoiceConfig.bank_accounts)
-    } catch (e) {
-      logger.error('Failed to parse bank accounts:', e)
-    }
-  }
+  const bankAccounts: BankAccount[] = parseBankAccounts(invoiceConfig?.bank_accounts)
 
   // Helper function
   const formatCurrency = (amount: number) => {

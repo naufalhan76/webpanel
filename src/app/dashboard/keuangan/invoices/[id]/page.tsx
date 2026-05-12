@@ -53,6 +53,7 @@ import {
   type PaymentRecord,
 } from '@/lib/actions/invoices'
 import { getInvoiceConfig, type InvoiceConfig } from '@/lib/actions/invoice-config'
+import { parseBankAccounts } from '@/lib/bank-accounts'
 import { 
   logInvoiceCommunication, 
   getInvoiceCommunicationStats 
@@ -81,6 +82,10 @@ const getStatusLabel = (status: string): string => {
     CANCELLED: 'Cancelled',
   }
   return labels[status] || status
+}
+
+const formatBankAccountLine = (account: { account_label: string; bank: string; account_number: string; account_name: string }) => {
+  return `${account.account_label} — ${account.bank} / ${account.account_number} / a/n ${account.account_name}`
 }
 
 export default function InvoiceDetailPage() {
@@ -300,23 +305,14 @@ export default function InvoiceDetailPage() {
     }
 
     // Bank accounts
-    if (invoiceConfig.bank_accounts) {
-      try {
-        const bankAccounts = JSON.parse(invoiceConfig.bank_accounts)
-        if (bankAccounts.length > 0) {
+    const bankAccounts = parseBankAccounts(invoiceConfig.bank_accounts)
+    if (bankAccounts.length > 0) {
           message += `\n💳 *PEMBAYARAN*\n`
           message += `Silakan transfer ke salah satu rekening:\n\n`
-          bankAccounts.forEach((account: unknown, index: number) => {
-            const acc = account as { bank: string; account_number: string; account_name: string }
-            message += `${index + 1}. *${acc.bank}*\n`
-            message += `   ${acc.account_number}\n`
-            message += `   a/n ${acc.account_name}\n\n`
+          bankAccounts.forEach((account, index: number) => {
+            message += `${index + 1}. *${formatBankAccountLine(account)}*\n\n`
           })
           message += `_Mohon cantumkan No. Invoice (${invoiceNumber}) dalam keterangan transfer._\n`
-        }
-      } catch (e) {
-        logger.error('Failed to parse bank accounts:', e)
-      }
     }
 
     message += `\n---\n`
@@ -418,24 +414,15 @@ export default function InvoiceDetailPage() {
     }
 
     // Bank accounts
-    if (invoiceConfig.bank_accounts) {
-      try {
-        const bankAccounts = JSON.parse(invoiceConfig.bank_accounts)
-        if (bankAccounts.length > 0) {
+    const bankAccounts = parseBankAccounts(invoiceConfig.bank_accounts)
+    if (bankAccounts.length > 0) {
           body += `\n\nINFORMASI PEMBAYARAN\n`
           body += `═══════════════════════════════\n`
           body += `Silakan transfer ke salah satu rekening berikut:\n\n`
-          bankAccounts.forEach((account: unknown, index: number) => {
-            const acc = account as { bank: string; account_number: string; account_name: string }
-            body += `${index + 1}. ${acc.bank}\n`
-            body += `   No. Rekening: ${acc.account_number}\n`
-            body += `   Atas Nama: ${acc.account_name}\n\n`
+          bankAccounts.forEach((account, index: number) => {
+            body += `${index + 1}. ${formatBankAccountLine(account)}\n\n`
           })
           body += `Mohon cantumkan No. Invoice (${invoiceNumber}) dalam keterangan transfer.\n`
-        }
-      } catch (e) {
-        logger.error('Failed to parse bank accounts:', e)
-      }
     }
 
     if (invoiceConfig.terms_conditions_template) {

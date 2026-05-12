@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase-server'
 import { logInvoiceCommunication } from '@/lib/actions/invoice-communications'
+import { parseBankAccounts } from '@/lib/bank-accounts'
 import { logger } from '@/lib/logger'
+import { formatPhone } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -103,15 +105,14 @@ export async function POST(request: NextRequest) {
       companyEmail = 'noreply@yaleya.biz.id'
     }
 
-    // Parse bank accounts
-    let bankAccounts: unknown[] = []
-    if (config?.bank_accounts) {
-      try {
-        bankAccounts = JSON.parse(config.bank_accounts)
-      } catch (e) {
-        logger.error('Failed to parse bank accounts:', e)
-      }
-    }
+    const bankAccounts = parseBankAccounts(config?.bank_accounts)
+    const today = new Date().toISOString().split('T')[0]
+    const displayStatus = invoice.due_date < today &&
+      invoice.status !== 'PAID' &&
+      invoice.status !== 'CANCELLED' &&
+      invoice.payment_status !== 'PAID'
+      ? 'OVERDUE'
+      : invoice.status
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -265,11 +266,13 @@ export async function POST(request: NextRequest) {
               <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 6px;">
                 <h3 style="margin: 0 0 15px 0; color: #1e3a8a; font-size: 16px; font-weight: bold;">💳 Informasi Pembayaran</h3>
                 <p style="margin: 0 0 15px 0; color: #475569; font-size: 13px; font-style: italic;">Silakan transfer ke salah satu rekening berikut dan cantumkan No. Invoice (${invoice.invoice_number}) dalam keterangan transfer.</p>
-                ${bankAccounts.map((account, index) => { const a = account as Record<string, unknown>; return `
+                ${bankAccounts.map((account, index) => { return `
                   <div style="margin-bottom: 15px; padding: 12px; background-color: #ffffff; border-radius: 6px;">
-                    <p style="margin: 0 0 5px 0; color: #1e3a8a; font-size: 15px; font-weight: bold;">${index + 1}. ${a.bank}</p>
-                    <p style="margin: 0 0 3px 0; color: #475569; font-size: 14px;">No. Rekening: <strong>${a.account_number}</strong></p>
-                    <p style="margin: 0; color: #475569; font-size: 14px;">Atas Nama: <strong>${a.account_name}</strong></p>
+                    <p style="margin: 0 0 5px 0; color: #1e3a8a; font-size: 15px; font-weight: bold;">${index + 1}. ${account.account_label}</p>
+                    <p style="margin: 0 0 3px 0; color: #475569; font-size: 14px;">Bank: <strong>${account.bank}</strong></p>
+                    <p style="margin: 0 0 3px 0; color: #475569; font-size: 14px;">No. Rekening: <strong>${account.account_number}</strong></p>
+                    <p style="margin: 0; color: #475569; font-size: 14px;">Atas Nama: <strong>${account.account_name}</strong></p>
+                    <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 12px;">PPN ${account.tax_percentage}%</p>
                   </div>
                 `}).join('')}
               </div>
