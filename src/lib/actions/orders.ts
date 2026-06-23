@@ -268,14 +268,19 @@ export async function updateOrderStatus(orderId: string, newStatus: string, note
     
     if (error) throw error
     
-    // Record status transition
-    await supabase.from('order_status_transitions').insert({
-      order_id: orderId,
-      from_status: currentOrder.status,
-      to_status: newStatus,
-      notes,
-      transition_date: new Date().toISOString(),
-    })
+    // Record status transition (best-effort: log on failure but don't abort)
+    const { error: transitionError } = await supabase
+      .from('order_status_transitions')
+      .insert({
+        order_id: orderId,
+        from_status: currentOrder.status,
+        to_status: newStatus,
+        notes,
+        transition_date: new Date().toISOString(),
+      })
+    if (transitionError) {
+      logger.error('Failed to record order status transition:', transitionError)
+    }
     
     revalidatePath('/orders')
     revalidatePath('/dashboard')
@@ -492,14 +497,19 @@ export async function cancelOrder(orderId: string, reason?: string) {
     
     if (error) throw error
     
-    // Record status transition
-    await supabase.from('order_status_transitions').insert({
-      order_id: orderId,
-      from_status: currentOrder.status,
-      to_status: 'CANCELLED',
-      notes: reason || 'Order cancelled',
-      transition_date: new Date().toISOString(),
-    })
+    // Record status transition (best-effort: log on failure but don't abort)
+    const { error: transitionError } = await supabase
+      .from('order_status_transitions')
+      .insert({
+        order_id: orderId,
+        from_status: currentOrder.status,
+        to_status: 'CANCELLED',
+        notes: reason || 'Order cancelled',
+        transition_date: new Date().toISOString(),
+      })
+    if (transitionError) {
+      logger.error('Failed to record order status transition:', transitionError)
+    }
     
     revalidatePath('/orders')
     revalidatePath('/dashboard')
